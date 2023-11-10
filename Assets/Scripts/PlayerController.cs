@@ -6,19 +6,41 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
 
-    [SerializeField] private InputAction _movePlayer;
-    [SerializeField] private CharacterController _playerController;
-    [SerializeField] private Camera _mainCamera;
+    [SerializeField] 
+    private InputAction _movePlayer;
 
-    [Range(20f, 80f)]
+    [SerializeField] 
+    private CharacterController _playerController;
+
+    [SerializeField] 
+    private Camera _mainCamera;
+
+    [Range(0f, 150f)]
     [SerializeField] 
     private float _moveSpeed;
+
+    [Range(0f, 150f)]
+    [SerializeField] 
+    private float _followSpeed;
+
+    [SerializeField] 
+    private Vector3 _cameraOffset;
+
+    private void Awake()
+    {
+        _moveSpeed = 50;
+        _followSpeed = 50;
+        _cameraOffset = new Vector3(0f, 100f, -150f);
+    }
 
     void Update()
     {
         MovePlayer();
         RotatePlayerTowardsMouse();
+        FollowPlayerWithCamera();
     }
+
+
     private void OnEnable()
     {
         _movePlayer.Enable();
@@ -58,4 +80,25 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+
+    void FollowPlayerWithCamera()
+    {
+        Vector3 playerPosition = _playerController.transform.position;
+
+        // Offset the camera position
+        Vector3 targetPosition = playerPosition + _cameraOffset;
+
+        // Adjust the camera's position smoothly to follow the player
+        Vector3 newPosition = Vector3.Lerp(_mainCamera.transform.position, targetPosition, _followSpeed * Time.deltaTime);
+        _mainCamera.transform.position = newPosition;
+
+        // Make sure the camera is always looking at the player
+        _mainCamera.transform.LookAt(playerPosition);
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        Debug.Log("Player collided with: " + hit.gameObject.name);
+    }
+
 }
